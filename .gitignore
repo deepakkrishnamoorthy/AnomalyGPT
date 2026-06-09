@@ -1,0 +1,39 @@
+# Local datasets and generated artifacts
+data/raw/
+!data/raw/
+!data/raw/ucsd_ped1/
+!data/raw/ucsd_ped1/.gitkeep
+!data/raw/ucsd_ped2/
+!data/raw/ucsd_ped2/.gitkeep
+!data/raw/avenue/
+!data/raw/avenue/.gitkeep
+data/processed/
+datasets/anomalygpt/*/
+!datasets/anomalygpt/_template/
+!datasets/anomalygpt/_template/video_id/
+!datasets/anomalygpt/_template/video_id/frames/
+!datasets/anomalygpt/_template/video_id/masks/
+!datasets/anomalygpt/_template/video_id/tracks.json
+!datasets/anomalygpt/_template/video_id/qa.json
+!datasets/anomalygpt/README.md
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Training outputs
+checkpoints/
+runs/
+wandb/
+outputs/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

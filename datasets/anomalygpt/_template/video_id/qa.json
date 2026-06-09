@@ -1,0 +1,8 @@
+{
+  "video_id": "video_id",
+  "question": "What anomaly is present?",
+  "answer": "",
+  "physics": {},
+  "target_track_ids": [],
+  "mask_frames": []
+}
