@@ -1,0 +1,772 @@
+{
+  "dataset": "avenue",
+  "root": "datasets/avenue",
+  "annotation_file": "avenue/avenue.mat",
+  "frame_indexing": "ground_truth_intervals_are_inclusive_1_based",
+  "videos": [
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "01",
+      "frame_dir": "avenue/training/frames/01",
+      "frame_ext": ".jpg",
+      "frame_count": 1364,
+      "first_frame": "0000.jpg",
+      "last_frame": "1363.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "02",
+      "frame_dir": "avenue/training/frames/02",
+      "frame_ext": ".jpg",
+      "frame_count": 1511,
+      "first_frame": "0000.jpg",
+      "last_frame": "1510.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "03",
+      "frame_dir": "avenue/training/frames/03",
+      "frame_ext": ".jpg",
+      "frame_count": 1487,
+      "first_frame": "0000.jpg",
+      "last_frame": "1486.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "04",
+      "frame_dir": "avenue/training/frames/04",
+      "frame_ext": ".jpg",
+      "frame_count": 1511,
+      "first_frame": "0000.jpg",
+      "last_frame": "1510.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "05",
+      "frame_dir": "avenue/training/frames/05",
+      "frame_ext": ".jpg",
+      "frame_count": 815,
+      "first_frame": "000.jpg",
+      "last_frame": "814.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "06",
+      "frame_dir": "avenue/training/frames/06",
+      "frame_ext": ".jpg",
+      "frame_count": 1511,
+      "first_frame": "0000.jpg",
+      "last_frame": "1510.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "07",
+      "frame_dir": "avenue/training/frames/07",
+      "frame_ext": ".jpg",
+      "frame_count": 1099,
+      "first_frame": "0000.jpg",
+      "last_frame": "1098.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "08",
+      "frame_dir": "avenue/training/frames/08",
+      "frame_ext": ".jpg",
+      "frame_count": 1017,
+      "first_frame": "0000.jpg",
+      "last_frame": "1016.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "09",
+      "frame_dir": "avenue/training/frames/09",
+      "frame_ext": ".jpg",
+      "frame_count": 1391,
+      "first_frame": "0000.jpg",
+      "last_frame": "1390.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "10",
+      "frame_dir": "avenue/training/frames/10",
+      "frame_ext": ".jpg",
+      "frame_count": 1223,
+      "first_frame": "0000.jpg",
+      "last_frame": "1222.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "11",
+      "frame_dir": "avenue/training/frames/11",
+      "frame_ext": ".jpg",
+      "frame_count": 781,
+      "first_frame": "000.jpg",
+      "last_frame": "780.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "12",
+      "frame_dir": "avenue/training/frames/12",
+      "frame_ext": ".jpg",
+      "frame_count": 145,
+      "first_frame": "000.jpg",
+      "last_frame": "144.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "13",
+      "frame_dir": "avenue/training/frames/13",
+      "frame_ext": ".jpg",
+      "frame_count": 366,
+      "first_frame": "000.jpg",
+      "last_frame": "365.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "14",
+      "frame_dir": "avenue/training/frames/14",
+      "frame_ext": ".jpg",
+      "frame_count": 510,
+      "first_frame": "000.jpg",
+      "last_frame": "509.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "15",
+      "frame_dir": "avenue/training/frames/15",
+      "frame_ext": ".jpg",
+      "frame_count": 353,
+      "first_frame": "000.jpg",
+      "last_frame": "352.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "training",
+      "video_id": "16",
+      "frame_dir": "avenue/training/frames/16",
+      "frame_ext": ".jpg",
+      "frame_count": 244,
+      "first_frame": "000.jpg",
+      "last_frame": "243.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [],
+      "anomaly_frame_count": 0,
+      "anomaly_fraction": 0.0
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "01",
+      "frame_dir": "avenue/testing/frames/01",
+      "frame_ext": ".jpg",
+      "frame_count": 1439,
+      "first_frame": "0000.jpg",
+      "last_frame": "1438.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 78,
+          "end": 120
+        },
+        {
+          "start": 392,
+          "end": 422
+        },
+        {
+          "start": 503,
+          "end": 666
+        },
+        {
+          "start": 868,
+          "end": 910
+        },
+        {
+          "start": 932,
+          "end": 1101
+        }
+      ],
+      "anomaly_frame_count": 451,
+      "anomaly_fraction": 0.313412
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "02",
+      "frame_dir": "avenue/testing/frames/02",
+      "frame_ext": ".jpg",
+      "frame_count": 1211,
+      "first_frame": "0000.jpg",
+      "last_frame": "1210.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 273,
+          "end": 320
+        },
+        {
+          "start": 724,
+          "end": 764
+        },
+        {
+          "start": 1051,
+          "end": 1100
+        }
+      ],
+      "anomaly_frame_count": 139,
+      "anomaly_fraction": 0.114781
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "03",
+      "frame_dir": "avenue/testing/frames/03",
+      "frame_ext": ".jpg",
+      "frame_count": 923,
+      "first_frame": "000.jpg",
+      "last_frame": "922.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 295,
+          "end": 340
+        },
+        {
+          "start": 582,
+          "end": 622
+        }
+      ],
+      "anomaly_frame_count": 87,
+      "anomaly_fraction": 0.094258
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "04",
+      "frame_dir": "avenue/testing/frames/04",
+      "frame_ext": ".jpg",
+      "frame_count": 947,
+      "first_frame": "000.jpg",
+      "last_frame": "946.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 380,
+          "end": 428
+        },
+        {
+          "start": 649,
+          "end": 692
+        }
+      ],
+      "anomaly_frame_count": 93,
+      "anomaly_fraction": 0.098205
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "05",
+      "frame_dir": "avenue/testing/frames/05",
+      "frame_ext": ".jpg",
+      "frame_count": 1007,
+      "first_frame": "0000.jpg",
+      "last_frame": "1006.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 469,
+          "end": 786
+        }
+      ],
+      "anomaly_frame_count": 318,
+      "anomaly_fraction": 0.315789
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "06",
+      "frame_dir": "avenue/testing/frames/06",
+      "frame_ext": ".jpg",
+      "frame_count": 1283,
+      "first_frame": "0000.jpg",
+      "last_frame": "1282.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 345,
+          "end": 625
+        },
+        {
+          "start": 856,
+          "end": 1007
+        }
+      ],
+      "anomaly_frame_count": 433,
+      "anomaly_fraction": 0.33749
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "07",
+      "frame_dir": "avenue/testing/frames/07",
+      "frame_ext": ".jpg",
+      "frame_count": 605,
+      "first_frame": "000.jpg",
+      "last_frame": "604.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 423,
+          "end": 494
+        },
+        {
+          "start": 563,
+          "end": 595
+        }
+      ],
+      "anomaly_frame_count": 105,
+      "anomaly_fraction": 0.173554
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "08",
+      "frame_dir": "avenue/testing/frames/08",
+      "frame_ext": ".jpg",
+      "frame_count": 36,
+      "first_frame": "00.jpg",
+      "last_frame": "35.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 21,
+          "end": 30
+        }
+      ],
+      "anomaly_frame_count": 10,
+      "anomaly_fraction": 0.277778
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "09",
+      "frame_dir": "avenue/testing/frames/09",
+      "frame_ext": ".jpg",
+      "frame_count": 1175,
+      "first_frame": "0000.jpg",
+      "last_frame": "1174.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 136,
+          "end": 183
+        },
+        {
+          "start": 496,
+          "end": 566
+        },
+        {
+          "start": 741,
+          "end": 755
+        },
+        {
+          "start": 875,
+          "end": 981
+        },
+        {
+          "start": 1013,
+          "end": 1044
+        },
+        {
+          "start": 1104,
+          "end": 1163
+        }
+      ],
+      "anomaly_frame_count": 333,
+      "anomaly_fraction": 0.283404
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "10",
+      "frame_dir": "avenue/testing/frames/10",
+      "frame_ext": ".jpg",
+      "frame_count": 841,
+      "first_frame": "000.jpg",
+      "last_frame": "840.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 571,
+          "end": 607
+        },
+        {
+          "start": 637,
+          "end": 656
+        },
+        {
+          "start": 678,
+          "end": 713
+        },
+        {
+          "start": 724,
+          "end": 755
+        },
+        {
+          "start": 783,
+          "end": 818
+        }
+      ],
+      "anomaly_frame_count": 161,
+      "anomaly_fraction": 0.191439
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "11",
+      "frame_dir": "avenue/testing/frames/11",
+      "frame_ext": ".jpg",
+      "frame_count": 472,
+      "first_frame": "000.jpg",
+      "last_frame": "471.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 21,
+          "end": 164
+        },
+        {
+          "start": 308,
+          "end": 346
+        }
+      ],
+      "anomaly_frame_count": 183,
+      "anomaly_fraction": 0.387712
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "12",
+      "frame_dir": "avenue/testing/frames/12",
+      "frame_ext": ".jpg",
+      "frame_count": 1271,
+      "first_frame": "0000.jpg",
+      "last_frame": "1270.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 539,
+          "end": 617
+        },
+        {
+          "start": 645,
+          "end": 729
+        },
+        {
+          "start": 759,
+          "end": 843
+        }
+      ],
+      "anomaly_frame_count": 249,
+      "anomaly_fraction": 0.195909
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "13",
+      "frame_dir": "avenue/testing/frames/13",
+      "frame_ext": ".jpg",
+      "frame_count": 549,
+      "first_frame": "000.jpg",
+      "last_frame": "548.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 259,
+          "end": 286
+        },
+        {
+          "start": 458,
+          "end": 510
+        }
+      ],
+      "anomaly_frame_count": 81,
+      "anomaly_fraction": 0.147541
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "14",
+      "frame_dir": "avenue/testing/frames/14",
+      "frame_ext": ".jpg",
+      "frame_count": 507,
+      "first_frame": "000.jpg",
+      "last_frame": "506.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 399,
+          "end": 455
+        },
+        {
+          "start": 485,
+          "end": 500
+        }
+      ],
+      "anomaly_frame_count": 73,
+      "anomaly_fraction": 0.143984
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "15",
+      "frame_dir": "avenue/testing/frames/15",
+      "frame_ext": ".jpg",
+      "frame_count": 1001,
+      "first_frame": "0000.jpg",
+      "last_frame": "1000.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 498,
+          "end": 587
+        }
+      ],
+      "anomaly_frame_count": 90,
+      "anomaly_fraction": 0.08991
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "16",
+      "frame_dir": "avenue/testing/frames/16",
+      "frame_ext": ".jpg",
+      "frame_count": 740,
+      "first_frame": "000.jpg",
+      "last_frame": "739.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 632,
+          "end": 730
+        }
+      ],
+      "anomaly_frame_count": 99,
+      "anomaly_fraction": 0.133784
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "17",
+      "frame_dir": "avenue/testing/frames/17",
+      "frame_ext": ".jpg",
+      "frame_count": 426,
+      "first_frame": "000.jpg",
+      "last_frame": "425.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 21,
+          "end": 56
+        },
+        {
+          "start": 99,
+          "end": 420
+        }
+      ],
+      "anomaly_frame_count": 358,
+      "anomaly_fraction": 0.840376
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "18",
+      "frame_dir": "avenue/testing/frames/18",
+      "frame_ext": ".jpg",
+      "frame_count": 294,
+      "first_frame": "000.jpg",
+      "last_frame": "293.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 21,
+          "end": 285
+        }
+      ],
+      "anomaly_frame_count": 265,
+      "anomaly_fraction": 0.901361
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "19",
+      "frame_dir": "avenue/testing/frames/19",
+      "frame_ext": ".jpg",
+      "frame_count": 248,
+      "first_frame": "000.jpg",
+      "last_frame": "247.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 109,
+          "end": 240
+        }
+      ],
+      "anomaly_frame_count": 132,
+      "anomaly_fraction": 0.532258
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "20",
+      "frame_dir": "avenue/testing/frames/20",
+      "frame_ext": ".jpg",
+      "frame_count": 273,
+      "first_frame": "000.jpg",
+      "last_frame": "272.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 65,
+          "end": 144
+        },
+        {
+          "start": 168,
+          "end": 241
+        }
+      ],
+      "anomaly_frame_count": 154,
+      "anomaly_fraction": 0.564103
+    },
+    {
+      "dataset": "avenue",
+      "split": "testing",
+      "video_id": "21",
+      "frame_dir": "avenue/testing/frames/21",
+      "frame_ext": ".jpg",
+      "frame_count": 76,
+      "first_frame": "00.jpg",
+      "last_frame": "75.jpg",
+      "width": 640,
+      "height": 360,
+      "anomaly_intervals": [
+        {
+          "start": 14,
+          "end": 66
+        }
+      ],
+      "anomaly_frame_count": 53,
+      "anomaly_fraction": 0.697368
+    }
+  ]
+}
