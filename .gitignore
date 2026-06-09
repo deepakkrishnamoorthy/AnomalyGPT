@@ -16,6 +16,7 @@ datasets/anomalygpt/*/
 !datasets/anomalygpt/_template/video_id/tracks.json
 !datasets/anomalygpt/_template/video_id/qa.json
 !datasets/anomalygpt/README.md
+datasets/avenue/
 
 # Python
 __pycache__/
