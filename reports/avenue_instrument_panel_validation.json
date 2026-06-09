@@ -1,0 +1,15 @@
+{
+  "clip_manifest": "manifests\\anomalygpt_avenue_clips.jsonl",
+  "feature_csv": "features\\avenue_instrument_panel_features.csv",
+  "train_csv": "features\\avenue_instrument_panel_train.csv",
+  "test_csv": "features\\avenue_instrument_panel_test.csv",
+  "clips_checked": 2811,
+  "feature_rows": 2811,
+  "train_rows": 949,
+  "test_rows": 1862,
+  "mismatch_count": 0,
+  "warning_count": 0,
+  "mismatch_examples": [],
+  "warning_examples": [],
+  "status": "passed"
+}

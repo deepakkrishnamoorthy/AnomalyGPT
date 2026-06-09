@@ -27,6 +27,19 @@ OBJECT_CLASS_COLUMNS = [
 
 NUM_DIRECTION_BINS = 12
 
+TRACK_CATEGORY_TO_OBJECT_COLUMN = {
+    "person": "object_person",
+    "car": "object_car",
+    "bicycle": "object_cyclist",
+    "motorcycle": "object_cyclist",
+    "cyclist": "object_cyclist",
+    "dog": "object_dog",
+    "tree": "object_tree",
+    "house": "object_house",
+    "skyscraper": "object_skyscraper",
+    "bridge": "object_bridge",
+}
+
 
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -85,6 +98,25 @@ def prefixed_stats(prefix: str, values: list[float]) -> dict[str, float]:
         f"{prefix}_min": safe_min(values),
         f"{prefix}_max": safe_max(values),
     }
+
+
+def object_class_bars(clip: dict) -> dict[str, float]:
+    tracks_path = Path(clip["tracks_path"])
+    if not tracks_path.exists():
+        return {column: 0.0 for column in OBJECT_CLASS_COLUMNS}
+    tracks_payload = load_json(tracks_path)
+    counts = {column: 0 for column in OBJECT_CLASS_COLUMNS}
+    total = 0
+    for track in tracks_payload.get("tracks", []):
+        category = str(track.get("panel_class") or track.get("category") or "").lower()
+        column = TRACK_CATEGORY_TO_OBJECT_COLUMN.get(category)
+        if column is None:
+            continue
+        counts[column] += max(len(track.get("boxes", [])), 1)
+        total += max(len(track.get("boxes", [])), 1)
+    if total <= 0:
+        return {column: 0.0 for column in OBJECT_CLASS_COLUMNS}
+    return {column: counts[column] / total for column in OBJECT_CLASS_COLUMNS}
 
 
 def aggregate_panel_features(clip: dict, physics: dict) -> dict:
@@ -150,9 +182,7 @@ def aggregate_panel_features(clip: dict, physics: dict) -> dict:
         "crowd_mean_direction_deg": float(crowd_flow.get("mean_direction_deg", 0.0)),
     }
 
-    # Object class bars are placeholders until a detector/classifier is added.
-    for column in OBJECT_CLASS_COLUMNS:
-        row[column] = 0.0
+    row.update(object_class_bars(clip))
 
     for prefix, values in [
         ("track_length", track_lengths),
