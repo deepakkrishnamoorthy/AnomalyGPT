@@ -57,6 +57,7 @@ Do not use the old extracted-frame Avenue folder from the parent project.
 5. `scripts/04_extract_lightweight_instrument_features.py`
 6. `scripts/06_extract_appearance_features.py`
 7. `scripts/07_extract_yolo_object_metadata.py`
+8. `scripts/08_extract_eval_motion_attributes.py`
 
 The scripts are designed so you can run and validate each stage manually.
 
@@ -83,3 +84,9 @@ The scripts are designed so you can run and validate each stage manually.
 - Use YOLO as an optional enrichment stage to fill `object_person`, `object_car`, `object_cyclist`, and `object_dog`.
 - Standard COCO YOLO weights do not provide tree, house, skyscraper, or bridge classes, so those remain zero until a custom detector is added.
 - ByteTrack can be enabled for track IDs, but object detection metadata should stay separate from raw volume export because it is slower and model-dependent.
+
+## Motion Attributes
+
+- Start with direct optical-flow attributes instead of training EVAL's 3D CNN motion models immediately.
+- Extract `Yang` as a 12-bin direction histogram, `Yspeed` as 12 average speed values, `Ybkg.pix` as stationary pixel fraction, and `Ybkg.cls` as a background/no-motion label.
+- Use these attributes directly for the first normal-only anomaly baseline, then later train a lightweight 3D CNN to predict the same attributes from RGB volumes.
