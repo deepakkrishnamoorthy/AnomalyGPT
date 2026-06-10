@@ -53,7 +53,19 @@ Do not use the old extracted-frame Avenue folder from the parent project.
 1. `scripts/01_audit_avenue_dataset.py`
 2. `scripts/02_extract_avenue_frames.py`
 3. `scripts/03_build_eval_volume_manifest.py`
-4. `scripts/04_extract_lightweight_instrument_features.py`
+4. `scripts/05_export_eval_volumes.py`
+5. `scripts/04_extract_lightweight_instrument_features.py`
 
 The scripts are designed so you can run and validate each stage manually.
 
+## Ablation Notes
+
+- Current default temporal stride for 10-frame clip/volume manifest generation: `10`.
+- Later ablation target: compare temporal stride values such as `1`, `5`, and `10` for accuracy, localization quality, and compute cost.
+- Keep the ground-truth intervals from `avenue.mat` for evaluation only, not for normal-only training.
+
+## Volume Export
+
+- Raw exported volumes are saved as compressed grayscale `.npz` files.
+- Visual validation previews are saved as `.jpg` contact sheets with the 10 frames placed left-to-right.
+- Full export at temporal stride `10` can still be large because every time window is split into spatial regions.
