@@ -4,7 +4,7 @@ outputs/
 features/
 manifests/
 reports/
+models/
 *.pyc
 __pycache__/
 **/__pycache__/
-

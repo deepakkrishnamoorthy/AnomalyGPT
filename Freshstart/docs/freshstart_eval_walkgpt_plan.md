@@ -58,6 +58,9 @@ Do not use the old extracted-frame Avenue folder from the parent project.
 6. `scripts/06_extract_appearance_features.py`
 7. `scripts/07_extract_yolo_object_metadata.py`
 8. `scripts/08_extract_eval_motion_attributes.py`
+9. `scripts/09_build_model_feature_table.py`
+10. `scripts/10_train_region_exemplars.py`
+11. `scripts/11_score_region_exemplars.py`
 
 The scripts are designed so you can run and validate each stage manually.
 
@@ -90,3 +93,11 @@ The scripts are designed so you can run and validate each stage manually.
 - Start with direct optical-flow attributes instead of training EVAL's 3D CNN motion models immediately.
 - Extract `Yang` as a 12-bin direction histogram, `Yspeed` as 12 average speed values, `Ybkg.pix` as stationary pixel fraction, and `Ybkg.cls` as a background/no-motion label.
 - Use these attributes directly for the first normal-only anomaly baseline, then later train a lightweight 3D CNN to predict the same attributes from RGB volumes.
+
+## Model Building
+
+- Join appearance and motion attributes by `volume_id` into one model feature table.
+- Train only on `split == training`, which is nominal Avenue video.
+- Use region-specific greedy exemplar selection as the first anomaly model.
+- Score test volumes by nearest exemplar distance within the same spatial region.
+- Keep `avenue.mat` ground truth for evaluation after scoring, not for training.
