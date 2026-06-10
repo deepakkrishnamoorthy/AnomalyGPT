@@ -56,6 +56,7 @@ Do not use the old extracted-frame Avenue folder from the parent project.
 4. `scripts/05_export_eval_volumes.py`
 5. `scripts/04_extract_lightweight_instrument_features.py`
 6. `scripts/06_extract_appearance_features.py`
+7. `scripts/07_extract_yolo_object_metadata.py`
 
 The scripts are designed so you can run and validate each stage manually.
 
@@ -76,3 +77,9 @@ The scripts are designed so you can run and validate each stage manually.
 - Start with a training-free ImageNet `resnet18` appearance embedding baseline.
 - Crop RGB frames from `data/avenue_frames` using the manifest metadata, then average frame embeddings over each 10-frame volume.
 - This replaces EVAL's supervised 8-class appearance network for the first baseline; YOLO/ByteTrack object semantics can be added later for explanations.
+
+## Object Metadata
+
+- Use YOLO as an optional enrichment stage to fill `object_person`, `object_car`, `object_cyclist`, and `object_dog`.
+- Standard COCO YOLO weights do not provide tree, house, skyscraper, or bridge classes, so those remain zero until a custom detector is added.
+- ByteTrack can be enabled for track IDs, but object detection metadata should stay separate from raw volume export because it is slower and model-dependent.
