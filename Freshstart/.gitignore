@@ -1,0 +1,10 @@
+# Generated fresh-start artifacts
+data/
+outputs/
+features/
+manifests/
+reports/
+*.pyc
+__pycache__/
+**/__pycache__/
+
