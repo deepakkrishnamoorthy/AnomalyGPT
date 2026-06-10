@@ -55,6 +55,7 @@ Do not use the old extracted-frame Avenue folder from the parent project.
 3. `scripts/03_build_eval_volume_manifest.py`
 4. `scripts/05_export_eval_volumes.py`
 5. `scripts/04_extract_lightweight_instrument_features.py`
+6. `scripts/06_extract_appearance_features.py`
 
 The scripts are designed so you can run and validate each stage manually.
 
@@ -69,3 +70,9 @@ The scripts are designed so you can run and validate each stage manually.
 - Raw exported volumes are saved as compressed grayscale `.npz` files.
 - Visual validation previews are saved as `.jpg` contact sheets with the 10 frames placed left-to-right.
 - Full export at temporal stride `10` can still be large because every time window is split into spatial regions.
+
+## Appearance Features
+
+- Start with a training-free ImageNet `resnet18` appearance embedding baseline.
+- Crop RGB frames from `data/avenue_frames` using the manifest metadata, then average frame embeddings over each 10-frame volume.
+- This replaces EVAL's supervised 8-class appearance network for the first baseline; YOLO/ByteTrack object semantics can be added later for explanations.
