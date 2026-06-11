@@ -68,6 +68,8 @@ The scripts are designed so you can run and validate each stage manually.
 
 - Current default temporal stride for 10-frame clip/volume manifest generation: `10`.
 - Later ablation target: compare temporal stride values such as `1`, `5`, and `10` for accuracy, localization quality, and compute cost.
+- Current appearance baseline: ImageNet `resnet18` mean-pooled over the 10-frame volume.
+- Later appearance ablation target: compare `resnet18` against DINOv3-style self-supervised vision features for accuracy vs. compute cost.
 - Keep the ground-truth intervals from `avenue.mat` for evaluation only, not for normal-only training.
 
 ## Volume Export
