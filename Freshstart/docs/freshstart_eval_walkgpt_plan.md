@@ -103,3 +103,9 @@ The scripts are designed so you can run and validate each stage manually.
 - Use region-specific greedy exemplar selection as the first anomaly model.
 - Score test volumes by nearest exemplar distance within the same spatial region.
 - Keep `avenue.mat` ground truth for evaluation after scoring, not for training.
+
+## Evaluation Notes
+
+- Current evaluation outputs frame AUC from max-projected anomaly scores and spatial-mask AUC/AP using Avenue `volLabel` masks.
+- Further improvement: implement RBDC-style connected-component overlap from predicted spatial score maps and GT masks.
+- Further ablation/improvement: approximate TBDC by linking GT mask connected components across time, unless official track IDs are found.

@@ -1,9 +1,13 @@
-"""Convert region/volume anomaly scores into frame-level scores.
+"""Convert region/volume anomaly scores into frame-level and spatial scores.
 
 For each test video, every scored 10-frame volume contributes its anomaly score
 to all frames covered by that volume. If multiple regions/windows cover the same
 frame, the frame keeps the maximum score, matching the EVAL paper's projection
 rule.
+
+The script also saves compact EVAL-style spatial score grids. For 128x128
+regions with 64px half-overlap, each region contributes to a 2x2 block on the
+half-stride grid, just like EVAL's anomaly.py.
 """
 
 from __future__ import annotations
@@ -27,11 +31,20 @@ def video_frame_count(dataset_root: Path, video_id: str) -> int:
     return count
 
 
+def grid_shape(scores: pd.DataFrame) -> tuple[int, int]:
+    stride_x = int(scores["w"].iloc[0]) // 2
+    stride_y = int(scores["h"].iloc[0]) // 2
+    max_col = int((scores["x"].max() // stride_x) + 2)
+    max_row = int((scores["y"].max() // stride_y) + 2)
+    return max_row, max_col
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--scores", type=Path, default=Path("outputs/avenue_eval10_exemplar_scores.csv"))
     parser.add_argument("--dataset-root", type=Path, default=Path("Avenue Dataset"))
     parser.add_argument("--out", type=Path, default=Path("outputs/avenue_eval10_frame_scores.csv"))
+    parser.add_argument("--spatial-map-dir", type=Path, default=Path("outputs/avenue_eval10_spatial_score_maps"))
     args = parser.parse_args()
 
     if not args.scores.exists() or args.scores.stat().st_size == 0:
@@ -42,16 +55,29 @@ def main() -> None:
         raise RuntimeError(f"No rows found in {args.scores}")
 
     rows = []
+    args.spatial_map_dir.mkdir(parents=True, exist_ok=True)
+    grid_h, grid_w = grid_shape(scores)
+
     for video_id, group in scores.groupby("video_id"):
         video_id_str = f"{int(video_id):02d}"
         frame_count = video_frame_count(args.dataset_root, video_id_str)
         frame_scores = np.zeros(frame_count, dtype=np.float32)
+        spatial_scores = np.zeros((frame_count, grid_h, grid_w), dtype=np.float32)
 
         for _, row in group.iterrows():
             start = max(1, int(row["start_frame"]))
             end = min(frame_count, int(row["end_frame"]))
             score = float(row["anomaly_score"])
             frame_scores[start - 1 : end] = np.maximum(frame_scores[start - 1 : end], score)
+
+            stride_x = int(row["w"]) // 2
+            stride_y = int(row["h"]) // 2
+            grid_col = int(row["x"]) // stride_x
+            grid_row = int(row["y"]) // stride_y
+            spatial_scores[start - 1 : end, grid_row : grid_row + 2, grid_col : grid_col + 2] = np.maximum(
+                spatial_scores[start - 1 : end, grid_row : grid_row + 2, grid_col : grid_col + 2],
+                score,
+            )
 
         for frame_idx, score in enumerate(frame_scores, start=1):
             rows.append(
@@ -61,7 +87,8 @@ def main() -> None:
                     "frame_score": float(score),
                 }
             )
-        print(f"video {video_id_str}: {frame_count} frame scores")
+        np.save(args.spatial_map_dir / f"{video_id_str}.npy", spatial_scores)
+        print(f"video {video_id_str}: {frame_count} frame scores, spatial grid {spatial_scores.shape}")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", newline="", encoding="utf-8") as handle:
