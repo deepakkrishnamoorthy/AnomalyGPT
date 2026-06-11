@@ -11,6 +11,8 @@ const els = {
   explanationText: document.getElementById("explanationText"),
   testClip: document.getElementById("testClip"),
   exemplarClip: document.getElementById("exemplarClip"),
+  testClipGif: document.getElementById("testClipGif"),
+  exemplarClipGif: document.getElementById("exemplarClipGif"),
   testSheet: document.getElementById("testSheet"),
   exemplarSheet: document.getElementById("exemplarSheet"),
   instrumentPanel: document.getElementById("instrumentPanel"),
@@ -73,6 +75,18 @@ function setMedia(el, url) {
   el.src = url;
 }
 
+function setClip(videoEl, gifEl, videoUrl, gifUrl) {
+  setMedia(gifEl, gifUrl);
+  setMedia(videoEl, videoUrl);
+  if (gifUrl) {
+    gifEl.style.display = "block";
+    videoEl.classList.add("has-gif-fallback");
+  } else {
+    gifEl.style.display = "none";
+    videoEl.classList.remove("has-gif-fallback");
+  }
+}
+
 function showCase(index, autoplay) {
   if (!cases.length) return;
   activeIndex = ((index % cases.length) + cases.length) % cases.length;
@@ -83,15 +97,15 @@ function showCase(index, autoplay) {
   els.scoreBadge.textContent = `score ${fmt(item.anomaly_score)}`;
   els.explanationText.textContent = item.plain_english_explanation;
 
-  setMedia(els.testClip, item.test_clip_url);
-  setMedia(els.exemplarClip, item.nearest_exemplar_clip_url);
+  setClip(els.testClip, els.testClipGif, item.test_clip_url, item.test_clip_gif_url);
+  setClip(els.exemplarClip, els.exemplarClipGif, item.nearest_exemplar_clip_url, item.nearest_exemplar_clip_gif_url);
   setMedia(els.testSheet, item.test_sheet_url);
   setMedia(els.exemplarSheet, item.nearest_exemplar_sheet_url);
   setMedia(els.instrumentPanel, item.instrument_panel_url);
 
   renderCaseList();
 
-  if (autoplay && item.test_clip_url) {
+  if (autoplay && item.test_clip_url && !item.test_clip_gif_url) {
     els.testClip.currentTime = 0;
     els.testClip.play().catch(() => {});
   }
@@ -106,12 +120,23 @@ function wireStreamPlayback() {
   els.playAllButton.addEventListener("click", () => {
     if (!cases.length) return;
     streamMode = true;
-    showCase(0, true);
+    showCase(0, false);
+    startGifStreamTimer();
   });
 
   els.refreshButton.addEventListener("click", () => {
     load();
   });
+}
+
+function startGifStreamTimer() {
+  if (!streamMode) return;
+  window.clearTimeout(window.__caseStreamTimer);
+  window.__caseStreamTimer = window.setTimeout(() => {
+    if (!streamMode) return;
+    showCase(activeIndex + 1, false);
+    startGifStreamTimer();
+  }, 2400);
 }
 
 async function load() {

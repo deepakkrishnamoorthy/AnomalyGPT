@@ -72,6 +72,8 @@ def load_cases() -> list[dict[str, Any]]:
             "nearest_exemplar_sheet",
             "test_clip",
             "nearest_exemplar_clip",
+            "test_clip_gif",
+            "nearest_exemplar_clip_gif",
         ]:
             item[f"{key}_url"] = normalize_artifact_path(item.get(key))
         hydrated.append(item)

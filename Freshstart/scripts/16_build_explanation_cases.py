@@ -20,6 +20,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 
 SPLIT_TO_FRAME_DIR = {
@@ -99,11 +100,11 @@ def make_contact_sheet(frames_root: Path, row: pd.Series, out_path: Path, *, ann
     return str(out_path)
 
 
-def make_clip(frames_root: Path, row: pd.Series, out_path: Path, *, fps: float = 5.0) -> str:
+def make_clip(frames_root: Path, row: pd.Series, out_path: Path, *, volume_id: str, fps: float = 5.0) -> str:
     frames = []
     for frame_idx in range(int(row["start_frame"]), int(row["end_frame"]) + 1):
         frame = read_frame(frames_root, row, frame_idx)
-        frame = draw_region(frame, row, label=f"{row['volume_id']} f{frame_idx}")
+        frame = draw_region(frame, row, label=f"{volume_id} f{frame_idx}")
         frames.append(frame)
     h, w = frames[0].shape[:2]
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -111,6 +112,27 @@ def make_clip(frames_root: Path, row: pd.Series, out_path: Path, *, fps: float =
     for frame in frames:
         writer.write(frame)
     writer.release()
+    return str(out_path)
+
+
+def make_gif(frames_root: Path, row: pd.Series, out_path: Path, *, volume_id: str, fps: float = 5.0) -> str:
+    frames = []
+    for frame_idx in range(int(row["start_frame"]), int(row["end_frame"]) + 1):
+        frame = read_frame(frames_root, row, frame_idx)
+        frame = draw_region(frame, row, label=f"{volume_id} f{frame_idx}")
+        frame = cv2.resize(frame, (640, 360), interpolation=cv2.INTER_AREA)
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frames.append(Image.fromarray(rgb))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    duration_ms = int(1000 / fps)
+    frames[0].save(
+        out_path,
+        save_all=True,
+        append_images=frames[1:],
+        duration=duration_ms,
+        loop=0,
+        optimize=True,
+    )
     return str(out_path)
 
 
@@ -171,9 +193,87 @@ def make_instrument_panel(case: dict, test_feat: pd.Series, ex_feat: pd.Series, 
     for idx, line in enumerate(lines):
         cv2.putText(panel, line, (40, y0 + idx * 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (40, 40, 40), 1, cv2.LINE_AA)
 
+    explanation_lines = wrap_text(case["plain_english_explanation"], max_chars=78)
+    cv2.putText(panel, "Explanation", (40, 615), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (20, 20, 20), 2, cv2.LINE_AA)
+    for idx, line in enumerate(explanation_lines[:3]):
+        cv2.putText(panel, line, (40, 645 + idx * 25), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (40, 40, 40), 1, cv2.LINE_AA)
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(out_path), panel, [int(cv2.IMWRITE_JPEG_QUALITY), 92])
     return str(out_path)
+
+
+def wrap_text(text: str, max_chars: int) -> list[str]:
+    words = text.split()
+    lines: list[str] = []
+    current: list[str] = []
+    for word in words:
+        trial = " ".join(current + [word])
+        if len(trial) > max_chars and current:
+            lines.append(" ".join(current))
+            current = [word]
+        else:
+            current.append(word)
+    if current:
+        lines.append(" ".join(current))
+    return lines
+
+
+def generated_explanation(case: dict, test_feat: pd.Series, ex_feat: pd.Series) -> str:
+    region_id = case["region_id"]
+    main_reason = case["main_reason"]
+    test_moving = float(test_feat["motion_moving_fraction"])
+    ex_moving = float(ex_feat["motion_moving_fraction"])
+    test_speed = float(test_feat["motion_mean_magnitude"])
+    ex_speed = float(ex_feat["motion_mean_magnitude"])
+
+    if main_reason == "appearance":
+        opening = (
+            f"In region {region_id}, the test volume is anomalous mainly because its visual appearance "
+            "does not match the closest normal exemplar for that same region."
+        )
+    elif main_reason == "speed":
+        opening = (
+            f"In region {region_id}, the test volume is anomalous mainly because its motion speed "
+            "differs from the closest normal exemplar for that same region."
+        )
+    elif main_reason == "direction":
+        opening = (
+            f"In region {region_id}, the test volume is anomalous mainly because its motion direction "
+            "differs from the closest normal exemplar for that same region."
+        )
+    else:
+        opening = (
+            f"In region {region_id}, the test volume is anomalous mainly because its background or "
+            "stationary-motion pattern differs from the closest normal exemplar."
+        )
+
+    if test_moving > 0.05 and ex_moving > 0.05:
+        motion_state = "The motion is active in both clips"
+    elif test_moving <= 0.05 and ex_moving <= 0.05:
+        motion_state = "Both clips are mostly stationary"
+    elif test_moving > ex_moving:
+        motion_state = "The test clip has noticeably more motion than the normal exemplar"
+    else:
+        motion_state = "The normal exemplar has noticeably more motion than the test clip"
+
+    if test_speed > ex_speed * 1.25:
+        speed_text = "and the test clip is faster, so speed likely contributes to the anomaly."
+    elif ex_speed > test_speed * 1.25:
+        speed_text = "and the exemplar is faster, so speed is probably not the main explanation."
+    else:
+        speed_text = "and their average speeds are similar, so speed is not the strongest explanation."
+
+    if main_reason == "appearance":
+        closing = "The direction pattern contributes, but appearance is dominant."
+    elif main_reason == "direction":
+        closing = "Appearance may still differ, but the direction mismatch is the strongest signal."
+    elif main_reason == "speed":
+        closing = "Appearance and direction may contribute, but speed is dominant."
+    else:
+        closing = "The main signal is the change in background or stationary-motion behavior."
+
+    return f"{opening} {motion_state}, {speed_text} {closing}"
 
 
 def select_cases(scores: pd.DataFrame, top_k: int, video_id: str | None, dedupe_window: int) -> pd.DataFrame:
@@ -251,6 +351,7 @@ def main() -> None:
             "distance_bkg": components["background"],
             "main_reason": main_reason,
         }
+        case["plain_english_explanation"] = generated_explanation(case, test_feat, ex_feat)
 
         test_sheet = assets_dir / f"{case_id}_test_sheet.jpg"
         ex_sheet = assets_dir / f"{case_id}_nearest_exemplar_sheet.jpg"
@@ -259,8 +360,30 @@ def main() -> None:
         case["nearest_exemplar_sheet"] = make_contact_sheet(args.frames_root, ex_feat, ex_sheet, annotate_full_frame=True)
         case["instrument_panel"] = make_instrument_panel(case, test_feat, ex_feat, panel)
         if args.make_videos:
-            case["test_clip"] = make_clip(args.frames_root, test_feat, assets_dir / f"{case_id}_test_clip.mp4")
-            case["nearest_exemplar_clip"] = make_clip(args.frames_root, ex_feat, assets_dir / f"{case_id}_nearest_exemplar_clip.mp4")
+            case["test_clip"] = make_clip(
+                args.frames_root,
+                test_feat,
+                assets_dir / f"{case_id}_test_clip.mp4",
+                volume_id=volume_id,
+            )
+            case["nearest_exemplar_clip"] = make_clip(
+                args.frames_root,
+                ex_feat,
+                assets_dir / f"{case_id}_nearest_exemplar_clip.mp4",
+                volume_id=exemplar_id,
+            )
+            case["test_clip_gif"] = make_gif(
+                args.frames_root,
+                test_feat,
+                assets_dir / f"{case_id}_test_clip.gif",
+                volume_id=volume_id,
+            )
+            case["nearest_exemplar_clip_gif"] = make_gif(
+                args.frames_root,
+                ex_feat,
+                assets_dir / f"{case_id}_nearest_exemplar_clip.gif",
+                volume_id=exemplar_id,
+            )
         cases.append(case)
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
@@ -274,6 +397,7 @@ def main() -> None:
             <section>
               <h2>{html.escape(case['case_id'])}: score {case['anomaly_score']:.3f}, reason {html.escape(case['main_reason'])}</h2>
               <p>Test {html.escape(case['volume_id'])} vs nearest normal {html.escape(case['nearest_exemplar_volume_id'])}</p>
+              <p><strong>Explanation:</strong> {html.escape(case['plain_english_explanation'])}</p>
               <img src="{Path(case['instrument_panel']).relative_to(args.out_dir).as_posix()}" />
               <h3>Test volume</h3>
               <img src="{Path(case['test_sheet']).relative_to(args.out_dir).as_posix()}" />

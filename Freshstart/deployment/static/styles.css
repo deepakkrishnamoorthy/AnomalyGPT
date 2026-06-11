@@ -211,6 +211,16 @@ video {
   margin-bottom: 10px;
 }
 
+.clip-gif {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+video.has-gif-fallback {
+  display: none;
+}
+
 .instrument img {
   background: #fff;
 }
