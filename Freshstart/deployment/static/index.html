@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AnomalyGPT Avenue Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>AnomalyGPT</h1>
+      <p>Avenue anomaly explanation dashboard</p>
+    </div>
+    <div class="actions">
+      <button id="playAllButton" type="button">Play case stream</button>
+      <button id="refreshButton" type="button">Refresh</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel metrics">
+        <h2>Metrics</h2>
+        <div id="metricsGrid" class="metrics-grid"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Cases</h2>
+        <div id="caseList" class="case-list"></div>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <div class="case-head">
+        <div>
+          <h2 id="caseTitle">Select a case</h2>
+          <p id="caseSubtitle"></p>
+        </div>
+        <div id="scoreBadge" class="score-badge">score</div>
+      </div>
+
+      <section class="explanation">
+        <h3>Explanation</h3>
+        <p id="explanationText"></p>
+      </section>
+
+      <section class="video-grid">
+        <article>
+          <h3>Test Clip</h3>
+          <video id="testClip" controls muted playsinline></video>
+          <img id="testSheet" alt="test contact sheet">
+        </article>
+        <article>
+          <h3>Nearest Normal Exemplar</h3>
+          <video id="exemplarClip" controls muted playsinline></video>
+          <img id="exemplarSheet" alt="nearest exemplar contact sheet">
+        </article>
+      </section>
+
+      <section class="instrument">
+        <h3>Instrument Panel</h3>
+        <img id="instrumentPanel" alt="instrument panel">
+      </section>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
