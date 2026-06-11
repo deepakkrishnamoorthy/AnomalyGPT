@@ -14,29 +14,38 @@ import pandas as pd
 CLS_COLUMN = "motion_background_cls"
 
 
-def zero_motion_when_background(df: pd.DataFrame, comps: dict[str, list[str]]) -> pd.DataFrame:
-    out = df.copy()
-    background = out[CLS_COLUMN].to_numpy(dtype=np.int32) == 1
-    for group in ["ang", "speed", "bkg"]:
-        out.loc[background, comps[group]] = 0.0
-    return out
-
-
 def row_components(row: pd.Series, comps: dict[str, list[str]]) -> dict[str, np.ndarray]:
     return {
         "app": row[comps["app"]].to_numpy(dtype=np.float32),
         "ang": row[comps["ang"]].to_numpy(dtype=np.float32),
         "speed": row[comps["speed"]].to_numpy(dtype=np.float32),
         "bkg": row[comps["bkg"]].to_numpy(dtype=np.float32),
+        "cls": row[comps["cls"]].to_numpy(dtype=np.float32),
     }
 
 
-def component_distances(candidate: dict[str, np.ndarray], exemplars: dict, normalizers: dict[str, float]) -> dict[str, np.ndarray]:
+def component_distances(
+    candidate: dict[str, np.ndarray],
+    exemplars: dict,
+    normalizers: dict[str, float],
+    *,
+    mismatch_penalty: float,
+) -> dict[str, np.ndarray]:
     d_app = np.linalg.norm(exemplars["app"] - candidate["app"], axis=1) / normalizers["app"]
     d_ang = np.linalg.norm(exemplars["ang"] - candidate["ang"], axis=1) / normalizers["ang"]
     d_speed = np.linalg.norm(exemplars["speed"] - candidate["speed"], axis=1) / normalizers["speed"]
     d_bkg = np.linalg.norm(exemplars["bkg"] - candidate["bkg"], axis=1) / normalizers["bkg"]
-    total = d_app + d_ang + d_speed + d_bkg
+    candidate_background = int(candidate["cls"][0]) == 1
+    exemplar_background = exemplars["cls"].reshape(-1).astype(np.int32) == 1
+
+    both_background = candidate_background & exemplar_background
+    both_motion = (not candidate_background) & (~exemplar_background)
+    mismatch = ~(both_background | both_motion)
+
+    total = np.zeros_like(d_app)
+    total[both_background] = d_app[both_background]
+    total[both_motion] = d_app[both_motion] + d_ang[both_motion] + d_speed[both_motion] + d_bkg[both_motion]
+    total[mismatch] = d_app[mismatch] + mismatch_penalty
     return {
         "total": total,
         "app": d_app,
@@ -60,6 +69,7 @@ def main() -> None:
 
     comps = model["component_columns"]
     normalizers = model["normalizers"]
+    mismatch_penalty = float(model.get("background_mismatch_penalty", 3.0))
     df = pd.read_csv(args.features)
     if args.split != "all":
         df = df[df["split"] == args.split].copy()
@@ -68,7 +78,6 @@ def main() -> None:
     if df.empty:
         raise RuntimeError("No rows selected for scoring.")
 
-    df = zero_motion_when_background(df, comps)
     rows = []
     for idx, row in df.iterrows():
         region_id = int(row["region_id"])
@@ -77,7 +86,7 @@ def main() -> None:
             raise RuntimeError(f"No exemplars found for region_id={region_id}")
 
         candidate = row_components(row, comps)
-        distances = component_distances(candidate, exemplars, normalizers)
+        distances = component_distances(candidate, exemplars, normalizers, mismatch_penalty=mismatch_penalty)
         best_idx = int(np.argmin(distances["total"]))
 
         rows.append(

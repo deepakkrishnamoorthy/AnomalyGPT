@@ -50,14 +50,6 @@ def matrix(df: pd.DataFrame, cols: list[str]) -> np.ndarray:
     return df[cols].to_numpy(dtype=np.float32)
 
 
-def zero_motion_when_background(df: pd.DataFrame, comps: dict[str, list[str]]) -> pd.DataFrame:
-    out = df.copy()
-    background = out[CLS_COLUMN].to_numpy(dtype=np.int32) == 1
-    for group in ["ang", "speed", "bkg"]:
-        out.loc[background, comps[group]] = 0.0
-    return out
-
-
 def estimate_max_l2(x: np.ndarray, pair_sample_size: int, rng: np.random.Generator) -> float:
     if len(x) <= 1:
         return 1.0
@@ -79,12 +71,29 @@ def compute_normalizers(df: pd.DataFrame, comps: dict[str, list[str]], pair_samp
     }
 
 
-def component_distance(a: dict[str, np.ndarray], b: dict[str, np.ndarray], normalizers: dict[str, float]) -> np.ndarray:
+def component_distance(
+    a: dict[str, np.ndarray],
+    b: dict[str, np.ndarray],
+    normalizers: dict[str, float],
+    *,
+    mismatch_penalty: float,
+) -> np.ndarray:
     d_app = np.linalg.norm(b["app"] - a["app"], axis=1) / normalizers["app"]
     d_ang = np.linalg.norm(b["ang"] - a["ang"], axis=1) / normalizers["ang"]
     d_speed = np.linalg.norm(b["speed"] - a["speed"], axis=1) / normalizers["speed"]
     d_bkg = np.linalg.norm(b["bkg"] - a["bkg"], axis=1) / normalizers["bkg"]
-    return d_app + d_ang + d_speed + d_bkg
+    candidate_background = int(a["cls"][0]) == 1
+    exemplar_background = b["cls"].reshape(-1).astype(np.int32) == 1
+
+    both_background = candidate_background & exemplar_background
+    both_motion = (not candidate_background) & (~exemplar_background)
+    mismatch = ~(both_background | both_motion)
+
+    total = np.zeros_like(d_app)
+    total[both_background] = d_app[both_background]
+    total[both_motion] = d_app[both_motion] + d_ang[both_motion] + d_speed[both_motion] + d_bkg[both_motion]
+    total[mismatch] = d_app[mismatch] + mismatch_penalty
+    return total
 
 
 def row_components(row: pd.Series, comps: dict[str, list[str]]) -> dict[str, np.ndarray]:
@@ -93,6 +102,7 @@ def row_components(row: pd.Series, comps: dict[str, list[str]]) -> dict[str, np.
         "ang": row[comps["ang"]].to_numpy(dtype=np.float32),
         "speed": row[comps["speed"]].to_numpy(dtype=np.float32),
         "bkg": row[comps["bkg"]].to_numpy(dtype=np.float32),
+        "cls": row[comps["cls"]].to_numpy(dtype=np.float32),
     }
 
 
@@ -102,10 +112,17 @@ def exemplar_matrix(rows: list[pd.Series], comps: dict[str, list[str]]) -> dict[
         "ang": np.stack([row[comps["ang"]].to_numpy(dtype=np.float32) for row in rows], axis=0),
         "speed": np.stack([row[comps["speed"]].to_numpy(dtype=np.float32) for row in rows], axis=0),
         "bkg": np.stack([row[comps["bkg"]].to_numpy(dtype=np.float32) for row in rows], axis=0),
+        "cls": np.stack([row[comps["cls"]].to_numpy(dtype=np.float32) for row in rows], axis=0),
     }
 
 
-def select_region_exemplars(region_df: pd.DataFrame, comps: dict[str, list[str]], normalizers: dict[str, float], threshold: float) -> list[pd.Series]:
+def select_region_exemplars(
+    region_df: pd.DataFrame,
+    comps: dict[str, list[str]],
+    normalizers: dict[str, float],
+    threshold: float,
+    mismatch_penalty: float,
+) -> list[pd.Series]:
     exemplars: list[pd.Series] = []
     for _, row in region_df.iterrows():
         if not exemplars:
@@ -113,7 +130,7 @@ def select_region_exemplars(region_df: pd.DataFrame, comps: dict[str, list[str]]
             continue
         candidate = row_components(row, comps)
         current = exemplar_matrix(exemplars, comps)
-        distances = component_distance(candidate, current, normalizers)
+        distances = component_distance(candidate, current, normalizers, mismatch_penalty=mismatch_penalty)
         if float(distances.min()) > threshold:
             exemplars.append(row)
     return exemplars
@@ -142,6 +159,7 @@ def main() -> None:
     parser.add_argument("--features", type=Path, default=Path("features/avenue_eval10_model_features.csv"))
     parser.add_argument("--out", type=Path, default=Path("models/avenue_eval10_region_exemplars.pkl"))
     parser.add_argument("--threshold", type=float, default=0.35)
+    parser.add_argument("--background-mismatch-penalty", type=float, default=3.0)
     parser.add_argument("--normalizer-pair-sample-size", type=int, default=20000)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--limit-regions", type=int, default=None, help="Debug only: train first N region ids.")
@@ -153,7 +171,6 @@ def main() -> None:
         raise RuntimeError("No training rows found.")
 
     comps = component_columns(train)
-    train = zero_motion_when_background(train, comps)
     normalizers = compute_normalizers(train, comps, args.normalizer_pair_sample_size, args.seed)
 
     region_ids = sorted(train["region_id"].unique().tolist())
@@ -163,6 +180,7 @@ def main() -> None:
     model = {
         "version": "freshstart_eval10_region_exemplars_v1",
         "threshold": args.threshold,
+        "background_mismatch_penalty": args.background_mismatch_penalty,
         "normalizers": normalizers,
         "component_columns": comps,
         "regions": {},
@@ -170,7 +188,13 @@ def main() -> None:
 
     for region_id in region_ids:
         region_df = train[train["region_id"] == region_id].sort_values(["video_id", "start_frame"])
-        exemplars = select_region_exemplars(region_df, comps, normalizers, args.threshold)
+        exemplars = select_region_exemplars(
+            region_df,
+            comps,
+            normalizers,
+            args.threshold,
+            args.background_mismatch_penalty,
+        )
         model["regions"][int(region_id)] = serialize_exemplars(exemplars, comps)
         print(f"region {int(region_id):03d}: train_rows={len(region_df)} exemplars={len(exemplars)}")
 
@@ -182,6 +206,7 @@ def main() -> None:
     summary = {
         "model_path": str(args.out),
         "threshold": args.threshold,
+        "background_mismatch_penalty": args.background_mismatch_penalty,
         "normalizers": normalizers,
         "regions": {str(k): len(v["volume_ids"]) for k, v in model["regions"].items()},
         "total_exemplars": int(sum(len(v["volume_ids"]) for v in model["regions"].values())),
