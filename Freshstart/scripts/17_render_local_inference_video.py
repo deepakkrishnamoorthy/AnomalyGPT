@@ -48,7 +48,9 @@ def overlay_heatmap(frame: np.ndarray, score_grid: np.ndarray, low: float, high:
     heat_small = (norm * 255).astype(np.uint8)
     heat = cv2.resize(heat_small, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_LINEAR)
     color = cv2.applyColorMap(heat, cv2.COLORMAP_JET)
-    blended = cv2.addWeighted(frame, 1.0 - alpha, color, alpha, 0)
+    alpha_map = (heat.astype(np.float32) / 255.0) * alpha
+    alpha_map = alpha_map[:, :, None]
+    blended = (frame.astype(np.float32) * (1.0 - alpha_map) + color.astype(np.float32) * alpha_map).astype(np.uint8)
     return blended
 
 
@@ -65,8 +67,10 @@ def overlay_gt_mask(frame: np.ndarray, mask: np.ndarray | None) -> np.ndarray:
     return out
 
 
-def draw_top_region(frame: np.ndarray, row: pd.Series | None) -> np.ndarray:
+def draw_top_region(frame: np.ndarray, row: pd.Series | None, *, box_threshold: float) -> np.ndarray:
     if row is None:
+        return frame
+    if float(row["anomaly_score"]) < box_threshold:
         return frame
     out = frame.copy()
     x, y, w, h = int(row["x"]), int(row["y"]), int(row["w"]), int(row["h"])
@@ -84,11 +88,29 @@ def draw_top_region(frame: np.ndarray, row: pd.Series | None) -> np.ndarray:
     return out
 
 
-def draw_hud(frame: np.ndarray, *, video_id: str, frame_idx: int, frame_score: float, gt_on: bool, top_reason: str) -> np.ndarray:
+def draw_hud(
+    frame: np.ndarray,
+    *,
+    video_id: str,
+    frame_idx: int,
+    frame_score: float,
+    gt_on: bool,
+    top_reason: str,
+    top_row: pd.Series | None,
+    heat_floor: float,
+) -> np.ndarray:
     out = frame.copy()
-    cv2.rectangle(out, (0, 0), (out.shape[1], 56), (0, 0, 0), -1)
-    text = f"Test {video_id} | frame {frame_idx:04d} | anomaly score {frame_score:.3f} | GT mask {'on' if gt_on else 'off'} | reason {top_reason}"
-    cv2.putText(out, text, (14, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.62, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.rectangle(out, (0, 0), (out.shape[1], 72), (0, 0, 0), -1)
+    gt_text = "GT ON" if gt_on else "GT OFF"
+    gt_color = (70, 255, 70) if gt_on else (210, 210, 210)
+    line1 = f"Test {video_id} | F{frame_idx:04d} | frame score {frame_score:.3f} | {gt_text}"
+    if top_row is not None:
+        line2 = f"top region {int(top_row['region_id'])} score {float(top_row['anomaly_score']):.3f} | reason {top_reason} | heat shown above {heat_floor:.2f}"
+    else:
+        line2 = f"no active region | heat shown above {heat_floor:.2f}"
+    cv2.putText(out, line1, (12, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.62, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(out, gt_text, (out.shape[1] - 92, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.62, gt_color, 2, cv2.LINE_AA)
+    cv2.putText(out, line2[:88], (12, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.50, (230, 230, 230), 1, cv2.LINE_AA)
     return out
 
 
@@ -151,6 +173,11 @@ def main() -> None:
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/local_inference"))
     parser.add_argument("--fps", type=float, default=12.0)
     parser.add_argument("--heat-alpha", type=float, default=0.42)
+    parser.add_argument("--heat-floor", type=float, default=0.85, help="Scores below this are transparent in the heatmap.")
+    parser.add_argument("--heat-ceil-percentile", type=float, default=99.0)
+    parser.add_argument("--box-threshold", type=float, default=0.90, help="Only draw top-region boxes above this score.")
+    parser.add_argument("--start-frame", type=int, default=None)
+    parser.add_argument("--end-frame", type=int, default=None)
     parser.add_argument("--max-frames", type=int, default=None, help="Optional quick preview limit.")
     args = parser.parse_args()
 
@@ -173,13 +200,30 @@ def main() -> None:
     gt_available = masks is not None
     gt_frames = int(sum(1 for mask in masks if mask.any())) if masks is not None else 0
 
-    top_row = video_scores.sort_values("anomaly_score", ascending=False).iloc[0]
+    if args.start_frame is not None or args.end_frame is not None:
+        focus_start = args.start_frame or 1
+        focus_end = args.end_frame or int(video_scores["end_frame"].max())
+        candidate_scores = video_scores[
+            (video_scores["start_frame"] <= focus_end)
+            & (video_scores["end_frame"] >= focus_start)
+        ]
+        if candidate_scores.empty:
+            candidate_scores = video_scores
+    else:
+        candidate_scores = video_scores
+    top_row = candidate_scores.sort_values("anomaly_score", ascending=False).iloc[0]
     reason = reason_from_row(top_row)
     explanation = explanation_text(vid, top_row, gt_available, gt_frames)
 
-    low = float(np.percentile(spatial, 5))
-    high = float(np.percentile(spatial, 99))
+    low = float(args.heat_floor)
+    high = float(np.percentile(spatial, args.heat_ceil_percentile))
+    if high <= low:
+        high = float(spatial.max())
     frame_paths = sorted(frame_dir.glob("*.jpg"))
+    if args.start_frame is not None or args.end_frame is not None:
+        start_frame = args.start_frame or 1
+        end_frame = args.end_frame or len(frame_paths)
+        frame_paths = frame_paths[start_frame - 1 : end_frame]
     if args.max_frames is not None:
         frame_paths = frame_paths[: args.max_frames]
     if not frame_paths:
@@ -191,10 +235,15 @@ def main() -> None:
     h, w = first.shape[:2]
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    out_video = args.out_dir / f"avenue_test_{vid}_inference_overlay.mp4"
+    suffix = ""
+    if args.start_frame is not None or args.end_frame is not None:
+        suffix = f"_f{args.start_frame or 1:04d}_{args.end_frame or len(frame_paths):04d}"
+    out_video = args.out_dir / f"avenue_test_{vid}{suffix}_inference_overlay.mp4"
     writer = cv2.VideoWriter(str(out_video), cv2.VideoWriter_fourcc(*"mp4v"), args.fps, (w, h))
 
-    for idx, path in enumerate(frame_paths, start=1):
+    first_frame_idx = args.start_frame or 1
+    for offset, path in enumerate(frame_paths):
+        idx = first_frame_idx + offset
         frame = cv2.imread(str(path), cv2.IMREAD_COLOR)
         if frame is None:
             continue
@@ -206,16 +255,31 @@ def main() -> None:
             rendered = frame
         mask = masks[idx - 1] if masks is not None and idx <= len(masks) else None
         rendered = overlay_gt_mask(rendered, mask)
-        rendered = draw_top_region(rendered, top_row_for_frame(video_scores, idx))
-        rendered = draw_hud(rendered, video_id=vid, frame_idx=idx, frame_score=frame_score, gt_on=mask is not None and mask.any(), top_reason=reason)
+        active_top = top_row_for_frame(video_scores, idx)
+        active_reason = reason_from_row(active_top) if active_top is not None else "none"
+        rendered = draw_top_region(rendered, active_top, box_threshold=args.box_threshold)
+        rendered = draw_hud(
+            rendered,
+            video_id=vid,
+            frame_idx=idx,
+            frame_score=frame_score,
+            gt_on=mask is not None and mask.any(),
+            top_reason=active_reason,
+            top_row=active_top,
+            heat_floor=args.heat_floor,
+        )
         writer.write(rendered)
-        if idx % 250 == 0:
-            print(f"Rendered {idx} frames...")
+        if offset and offset % 250 == 0:
+            print(f"Rendered {offset} frames...")
     writer.release()
 
     summary = {
         "video_id": vid,
         "frames_rendered": len(frame_paths),
+        "render_start_frame": first_frame_idx,
+        "render_end_frame": first_frame_idx + len(frame_paths) - 1,
+        "heat_floor": args.heat_floor,
+        "box_threshold": args.box_threshold,
         "output_video": str(out_video),
         "top_volume_id": str(top_row["volume_id"]),
         "top_score": float(top_row["anomaly_score"]),
