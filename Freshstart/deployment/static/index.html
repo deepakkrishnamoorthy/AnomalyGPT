@@ -10,10 +10,11 @@
   <header class="topbar">
     <div>
       <h1>AnomalyGPT</h1>
-      <p>Avenue anomaly explanation dashboard</p>
+      <p>Avenue model predictions, heatmaps, and explanation cases</p>
     </div>
     <div class="actions">
-      <button id="playAllButton" type="button">Play case stream</button>
+      <button id="playAllButton" type="button">Play Anomaly Stream</button>
+      <button id="exportButton" type="button">Export Case Report</button>
       <button id="refreshButton" type="button">Refresh</button>
     </div>
   </header>
@@ -25,44 +26,94 @@
         <div id="metricsGrid" class="metrics-grid"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel filters">
         <h2>Cases</h2>
+        <label>
+          <span>Video</span>
+          <select id="videoFilter"></select>
+        </label>
+        <label>
+          <span>Reason</span>
+          <select id="reasonFilter">
+            <option value="all">All reasons</option>
+            <option value="appearance">Appearance</option>
+            <option value="direction">Direction</option>
+            <option value="speed">Speed</option>
+            <option value="background">Background</option>
+          </select>
+        </label>
+        <label>
+          <span>Sort</span>
+          <select id="sortSelect">
+            <option value="score_desc">Score high to low</option>
+            <option value="video_frame">Video and frame</option>
+            <option value="reason">Reason</option>
+          </select>
+        </label>
         <div id="caseList" class="case-list"></div>
       </section>
     </aside>
 
     <section class="workspace">
-      <div class="case-head">
+      <section class="case-head">
         <div>
           <h2 id="caseTitle">Select a case</h2>
           <p id="caseSubtitle"></p>
         </div>
         <div id="scoreBadge" class="score-badge">score</div>
-      </div>
+      </section>
+
+      <section class="timeline-panel">
+        <div class="section-head">
+          <h3>Video Timeline</h3>
+          <p id="timelineMeta"></p>
+        </div>
+        <div id="timelineChart" class="timeline-chart"></div>
+      </section>
 
       <section class="explanation">
-        <h3>Explanation</h3>
+        <div class="section-head">
+          <h3>Explanation</h3>
+          <div id="componentBadges" class="component-badges"></div>
+        </div>
         <p id="explanationText"></p>
       </section>
 
-      <section class="video-grid">
-        <article>
-          <h3>Test Clip</h3>
-          <img id="testClipGif" class="clip-gif" alt="test animated clip">
+      <section class="visual-grid">
+        <article class="media-panel">
+          <div class="section-head">
+            <h3>Predicted Anomaly Clip</h3>
+            <p id="clipMeta"></p>
+          </div>
+          <img id="testClipGif" class="clip-gif" alt="animated anomaly clip">
           <video id="testClip" controls muted playsinline></video>
-          <img id="testSheet" alt="test contact sheet">
         </article>
-        <article>
-          <h3>Nearest Normal Exemplar</h3>
-          <img id="exemplarClipGif" class="clip-gif" alt="nearest exemplar animated clip">
-          <video id="exemplarClip" controls muted playsinline></video>
-          <img id="exemplarSheet" alt="nearest exemplar contact sheet">
+
+        <article class="media-panel">
+          <div class="section-head">
+            <h3>Frame Overlay</h3>
+            <div class="segmented" id="overlayModes">
+              <button type="button" data-mode="combined" class="active">Combined</button>
+              <button type="button" data-mode="heatmap">Heatmap</button>
+              <button type="button" data-mode="gt">GT</button>
+              <button type="button" data-mode="raw">Raw</button>
+            </div>
+          </div>
+          <img id="overlayFrame" class="overlay-frame" alt="selected frame overlay">
         </article>
       </section>
 
       <section class="instrument">
-        <h3>Instrument Panel</h3>
-        <img id="instrumentPanel" alt="instrument panel">
+        <div class="section-head">
+          <h3>Instrument Meter</h3>
+          <p id="instrumentMeta"></p>
+        </div>
+        <div class="instrument-grid">
+          <div id="componentMeters" class="component-meters"></div>
+          <div id="directionWheel" class="meter-box"></div>
+          <div id="speedRays" class="meter-box"></div>
+          <div id="motionBar" class="meter-box"></div>
+        </div>
       </section>
     </section>
   </main>

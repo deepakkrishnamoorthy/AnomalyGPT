@@ -111,3 +111,27 @@ The scripts are designed so you can run and validate each stage manually.
 - Current evaluation outputs frame AUC from max-projected anomaly scores and spatial-mask AUC/AP using Avenue `volLabel` masks.
 - Further improvement: implement RBDC-style connected-component overlap from predicted spatial score maps and GT masks.
 - Further ablation/improvement: approximate TBDC by linking GT mask connected components across time, unless official track IDs are found.
+
+## Future Real-Time / Server-Streaming Work
+
+- Current stride-10 implementation is an offline research pipeline, not a real-time runtime.
+- Measured profile on the current workstation shows feature extraction is the bottleneck:
+  - appearance extraction uses ResNet18 on GPU
+  - Farneback optical flow, exemplar scoring, projection, and evaluation run on CPU
+  - exemplar scoring is relatively fast once features exist
+- Current unoptimized end-to-end estimate is only a few frame-equivalent FPS, so it is suitable for batch/offline analysis and visual validation, not yet live camera deployment.
+- Main reason: the current volume-first scripts recompute overlapping crops and overlapping optical-flow pairs many times.
+- Future server baseline should be frame-first and cached:
+  - ingest camera frames and store raw video/frame chunks
+  - compute full-frame optical flow once per adjacent frame pair
+  - compute/crop/batch appearance features once per frame-region where possible
+  - maintain a rolling 10-frame feature buffer per region
+  - score only the new temporal window as frames arrive
+  - emit frame heatmaps, anomaly events, and saved clips around peaks
+- Optimization targets:
+  - cache per-frame/per-region appearance embeddings before temporal pooling
+  - cache per-frame-pair optical flow before region pooling
+  - batch appearance crops aggressively on GPU
+  - vectorize region exemplar scoring
+  - use lower-resolution or ROI-only processing for multi-camera server deployment
+- Goal: make the method a practical real-time-ish server baseline for Avenue-like resolution before discussing edge/chip deployment.

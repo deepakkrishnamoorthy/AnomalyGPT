@@ -37,15 +37,15 @@ def iter_manifest(path: Path):
                 yield json.loads(line)
 
 
-def selected_rows(path: Path, *, split: str, limit: int | None) -> list[dict]:
-    rows = []
+def iter_selected_rows(path: Path, *, split: str, limit: int | None):
+    selected = 0
     for row in iter_manifest(path):
         if split != "all" and row["split"] != split:
             continue
-        rows.append(row)
-        if limit is not None and len(rows) >= limit:
+        yield row
+        selected += 1
+        if limit is not None and selected >= limit:
             break
-    return rows
 
 
 def read_gray_crop(frame_path: Path, row: dict) -> np.ndarray:
@@ -233,27 +233,39 @@ def main() -> None:
     parser.add_argument("--background-threshold", type=float, default=0.98)
     args = parser.parse_args()
 
-    rows = selected_rows(args.manifest, split=args.split, limit=args.limit)
-    if not rows:
+    args.out_csv.parent.mkdir(parents=True, exist_ok=True)
+    args.out_jsonl.parent.mkdir(parents=True, exist_ok=True)
+
+    written = 0
+    with args.out_csv.open("w", newline="", encoding="utf-8") as csv_handle, args.out_jsonl.open(
+        "w", encoding="utf-8"
+    ) as jsonl_handle:
+        writer = None
+        for idx, row in enumerate(iter_selected_rows(args.manifest, split=args.split, limit=args.limit), start=1):
+            frames = load_gray_volume(row, args.frames_root)
+            attrs = compute_motion_attributes(
+                frames,
+                flow_method=args.flow_method,
+                magnitude_threshold=args.magnitude_threshold,
+                background_threshold=args.background_threshold,
+            )
+            out_row = build_output_row(row, attrs)
+            if writer is None:
+                writer = csv.DictWriter(csv_handle, fieldnames=list(out_row.keys()))
+                writer.writeheader()
+
+            writer.writerow(out_row)
+            jsonl_handle.write(json.dumps(out_row, sort_keys=True) + "\n")
+            written += 1
+
+            if idx % 1000 == 0:
+                print(f"Processed {idx} motion volumes...")
+
+    if written == 0:
         raise SystemExit("No manifest rows selected.")
 
-    output_rows = []
-    for idx, row in enumerate(rows, start=1):
-        frames = load_gray_volume(row, args.frames_root)
-        attrs = compute_motion_attributes(
-            frames,
-            flow_method=args.flow_method,
-            magnitude_threshold=args.magnitude_threshold,
-            background_threshold=args.background_threshold,
-        )
-        output_rows.append(build_output_row(row, attrs))
-        if idx % 1000 == 0:
-            print(f"Processed {idx} motion volumes...")
-
-    write_csv(args.out_csv, output_rows)
-    write_jsonl(args.out_jsonl, output_rows)
-    print(f"Wrote {len(output_rows)} motion rows -> {args.out_csv}")
-    print(f"Wrote {len(output_rows)} motion rows -> {args.out_jsonl}")
+    print(f"Wrote {written} motion rows -> {args.out_csv}")
+    print(f"Wrote {written} motion rows -> {args.out_jsonl}")
 
 
 if __name__ == "__main__":

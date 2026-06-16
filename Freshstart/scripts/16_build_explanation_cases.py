@@ -276,10 +276,7 @@ def generated_explanation(case: dict, test_feat: pd.Series, ex_feat: pd.Series) 
     return f"{opening} {motion_state}, {speed_text} {closing}"
 
 
-def select_cases(scores: pd.DataFrame, top_k: int, video_id: str | None, dedupe_window: int) -> pd.DataFrame:
-    data = scores.copy()
-    if video_id is not None:
-        data = data[data["video_id"].astype(int) == int(video_id)]
+def select_cases_for_frame(data: pd.DataFrame, top_k: int, dedupe_window: int) -> list[pd.Series]:
     data = data.sort_values("anomaly_score", ascending=False)
     selected = []
     seen: list[tuple[int, int, int]] = []
@@ -291,6 +288,29 @@ def select_cases(scores: pd.DataFrame, top_k: int, video_id: str | None, dedupe_
         seen.append(key)
         if len(selected) >= top_k:
             break
+    return selected
+
+
+def select_cases(
+    scores: pd.DataFrame,
+    top_k: int,
+    video_id: str | None,
+    dedupe_window: int,
+    per_video_k: int | None,
+) -> pd.DataFrame:
+    data = scores.copy()
+    if video_id is not None:
+        data = data[data["video_id"].astype(int) == int(video_id)]
+
+    if per_video_k is not None:
+        selected = []
+        for _, group in data.groupby(data["video_id"].astype(int), sort=True):
+            selected.extend(select_cases_for_frame(group, per_video_k, dedupe_window))
+        if not selected:
+            return pd.DataFrame(columns=data.columns)
+        return pd.DataFrame(selected).sort_values(["video_id", "start_frame", "anomaly_score"], ascending=[True, True, False])
+
+    selected = select_cases_for_frame(data, top_k, dedupe_window)
     return pd.DataFrame(selected)
 
 
@@ -301,13 +321,21 @@ def main() -> None:
     parser.add_argument("--frames-root", type=Path, default=Path("data/avenue_frames"))
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/explanations"))
     parser.add_argument("--top-k", type=int, default=12)
+    parser.add_argument(
+        "--per-video-k",
+        type=int,
+        default=None,
+        help="Select this many deduplicated top cases per test video instead of only global top-k.",
+    )
     parser.add_argument("--video-id", default=None)
     parser.add_argument("--dedupe-window", type=int, default=30)
     parser.add_argument("--make-videos", action="store_true")
     args = parser.parse_args()
 
     scores = pd.read_csv(args.scores)
-    cases_df = select_cases(scores, args.top_k, args.video_id, args.dedupe_window)
+    cases_df = select_cases(scores, args.top_k, args.video_id, args.dedupe_window, args.per_video_k)
+    if cases_df.empty:
+        raise SystemExit("No explanation cases selected.")
     needed_ids = set(cases_df["volume_id"].astype(str)) | set(cases_df["nearest_exemplar_volume_id"].astype(str))
     features = pd.read_csv(args.features, usecols=FEATURE_USECOLS)
     features["volume_id"] = features["volume_id"].astype(str)

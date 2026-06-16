@@ -120,6 +120,13 @@ def main() -> None:
     parser.add_argument("--index-out", type=Path, default=Path("manifests/avenue_eval10_saved_volumes_manifest.jsonl"))
     parser.add_argument("--split", choices=["training", "testing", "all"], default="all")
     parser.add_argument("--limit", type=int, default=None, help="Export only the first N selected volumes for validation.")
+    parser.add_argument(
+        "--start-row",
+        type=int,
+        default=1,
+        help="1-based selected manifest row to start from. Useful for fast resume after counting existing .npz files.",
+    )
+    parser.add_argument("--append-index", action="store_true", help="Append to the saved-volume index instead of rewriting it.")
     parser.add_argument("--preview-tile-width", type=int, default=96)
     parser.add_argument("--skip-existing", action="store_true", help="Skip volume rows whose npz and preview already exist.")
     parser.add_argument("--no-npz", action="store_true", help="Only save preview contact sheets.")
@@ -132,10 +139,15 @@ def main() -> None:
     args.index_out.parent.mkdir(parents=True, exist_ok=True)
     exported = 0
     selected = 0
+    visited = 0
 
-    with args.index_out.open("w", encoding="utf-8") as index_handle:
+    index_mode = "a" if args.append_index else "w"
+    with args.index_out.open(index_mode, encoding="utf-8") as index_handle:
         for row in iter_manifest(args.manifest):
             if args.split != "all" and row["split"] != args.split:
+                continue
+            visited += 1
+            if visited < args.start_row:
                 continue
             if args.limit is not None and selected >= args.limit:
                 break
@@ -186,7 +198,10 @@ def main() -> None:
             if exported % 1000 == 0:
                 print(f"Exported {exported} volumes...")
 
-    print(f"Selected {selected} volumes. Newly exported {exported}. Index -> {args.index_out}")
+    print(
+        f"Visited {visited} selected manifest rows. Selected {selected} volumes from start row {args.start_row}. "
+        f"Newly exported {exported}. Index -> {args.index_out}"
+    )
 
 
 if __name__ == "__main__":
